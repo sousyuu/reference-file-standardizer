@@ -310,8 +310,7 @@
         
         function updateProcessBtn() {
             const btn = document.getElementById('processBtn');
-            btn.disabled = !(pdfFiles.length > 0 || endnoteFiles.length > 0);
-        }
+            btn.disabled = !(allFiles.length > 0);        }
         
         document.addEventListener('DOMContentLoaded', initDropzone);
         document.getElementById('processBtn').addEventListener('click', () => {
