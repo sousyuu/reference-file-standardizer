@@ -1188,7 +1188,7 @@
                 pdfFile,
                 reference: null,
                 confidence: 0,
-                snippet: '已停用 OCR 與自動比對，請從下拉選單手動選擇對應文獻。',
+                snippet: '',
                 manual: true
             }));
         }
@@ -1240,7 +1240,7 @@
         }
 
         function statusMeta(match) {
-            if (match.manual) return { cls: 'warning', text: '待手動選擇', score: '-' };
+            if (match.manual) return { cls: 'warning', text: '可選擇', score: '-' };
             if (!match.reference) return { cls: 'error', text: '無法匹配', score: 0 };
             if (match.confidence < 40) return { cls: 'warning', text: '低信心度', score: match.confidence };
             return { cls: 'success', text: '匹配成功', score: match.confidence };
@@ -1323,11 +1323,11 @@
 
                 const refInfo = match.reference
                     ? `作者：${match.reference.authors.join(', ') || '未知'}<br>年份：${match.reference.year || '未知'}<br>標題：${match.reference.title || '未知'}`
-                    : '找不到對應文獻，請手動輸入檔名。';
+                    : '';
                 const fallbackSelectHtml = `
                     <div class="fallback-row">
                         <select class="fallback-select" onchange="applyFallbackName(${index}, this.value)">
-                            <option value="">請手動選擇對應文獻檔名</option>
+                            <option value="">請選擇對應文獻檔名</option>
                             ${fallbackCandidates.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('')}
                         </select>
                     </div>
@@ -1343,7 +1343,7 @@
                         <button class="preview-btn" id="preview-btn-${index}" onclick="togglePreview(${index})">預覽 PDF</button>
                     </div>
                     ${fallbackSelectHtml}
-                    <div class="match-info">${refInfo}<br>首頁文字片段：${escapeHtml(match.snippet || '（無法擷取）')}</div>
+                    ${refInfo ? `<div class="match-info">${refInfo}</div>` : ''}
                     <div class="pdf-preview" id="preview-${index}">
                         <iframe id="frame-${index}" title="pdf-preview-${index}"></iframe>
                     </div>
@@ -1368,7 +1368,7 @@
                 await parseEndNoteFiles();
                 if (!references.length) throw new Error('沒有成功解析任何文獻資料，請確認 .enw/.ris 內容格式。');
 
-                showInfo(`已解析 ${references.length} 筆文獻，請手動為每個 PDF 選擇對應文獻...`);
+                showInfo(`已解析 ${references.length} 筆文獻，請為每個 PDF 選擇對應文獻...`);
                 const matches = await matchPDFsWithReferences();
                 renderResults(matches);
                 showInfo('完成，請從下拉選單選擇文獻後再下載。');
