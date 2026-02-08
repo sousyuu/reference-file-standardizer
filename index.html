@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文献党命名标准化工具 (Reference File Standardizer)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-1: #f6fbff;
+            --bg-2: #d8e9ff;
+            --ink: #12223d;
+            --sub-ink: #4c5e7b;
+            --brand: #0d6efd;
+            --brand-2: #3b82f6;
+            --ok: #1f9d55;
+            --warn: #f59e0b;
+            --err: #dc2626;
+            --card: #ffffff;
+            --border: #d7e0ef;
+        }
+        body {
+            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(120deg, var(--bg-1), var(--bg-2));
+            min-height: 100vh;
+            color: var(--ink);
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card);
+            border-radius: 18px;
+            box-shadow: 0 15px 45px rgba(18, 34, 61, 0.15);
+            overflow: hidden;
+        }
+        .header {
+            padding: 28px 30px;
+            background: linear-gradient(130deg, #1149a8, #2f6dd8);
+            color: #fff;
+        }
+        .header h1 {
+            font-size: 1.9rem;
+            margin-bottom: 8px;
+        }
+        .header p {
+            opacity: 0.95;
+        }
+        .content {
+            padding: 28px;
+        }
+        .section-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .dropzone {
+            border: 2px dashed var(--brand-2);
+            border-radius: 14px;
+            background: #f7faff;
+            padding: 36px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+        .dropzone:hover {
+            background: #eef5ff;
+            border-color: var(--brand);
+        }
+        .dropzone.dragover {
+            background: #e5efff;
+            transform: scale(1.01);
+        }
+        .dropzone-icon {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+        .dropzone-text {
+            font-size: 1rem;
+            color: var(--sub-ink);
+            margin-bottom: 8px;
+        }
+        .dropzone-hint {
+            font-size: 0.9rem;
+            color: #6f84a8;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-list {
+            margin-top: 16px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #fff;
+        }
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .file-name {
+            font-weight: 600;
+            word-break: break-all;
+            margin-bottom: 2px;
+        }
+        .file-meta {
+            font-size: 0.85rem;
+            color: #5f7396;
+        }
+        .file-remove {
+            border: none;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 8px;
+            padding: 7px 12px;
+            cursor: pointer;
+        }
+        .process-btn, .download-all-btn {
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            padding: 13px 16px;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: 0.2s ease;
+        }
+        .process-btn {
+            background: linear-gradient(130deg, #0d6efd, #2e7df1);
+        }
+        .download-all-btn {
+            background: linear-gradient(130deg, #059669, #10b981);
+        }
+        .process-btn:hover, .download-all-btn:hover {
+            transform: translateY(-1px);
+        }
+        .process-btn:disabled, .download-all-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 14px;
+            color: var(--sub-ink);
+        }
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            margin: 0 auto 10px;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .results {
+            display: none;
+            margin-top: 24px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            border-radius: 10px;
+            padding: 14px;
+            color: #fff;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.7rem;
+            font-weight: 700;
+        }
+        .result-item {
+            border: 1px solid var(--border);
+            border-left: 6px solid var(--brand);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: #fff;
+        }
+        .result-item.success {
+            border-left-color: var(--ok);
+        }
+        .result-item.warning {
+            border-left-color: var(--warn);
+        }
+        .result-item.error {
+            border-left-color: var(--err);
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.82rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .badge.success {
+            background: var(--ok);
+        }
+        .badge.warning {
+            background: var(--warn);
+        }
+        .badge.error {
+            background: var(--err);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 文献党命名标准化工具</h1>
+            <p>PDF and EndNote 参考文献标准化 | OCR & Metadata Matching</p>
+        </div>
+        
+        <div class="content">
+            <div class="section-title">📤 上传文件</div>
+            <div class="dropzone" id="allDropzone">
+                <div class="dropzone-icon">📁</div>
+                <div class="dropzone-text">拖拽文件到此处上传</div>
+                <div class="dropzone-hint">支持 .pdf, .enw, .ris 格式</div>
+                <input type="file" id="allInput" class="file-input" accept=".pdf,.enw,.ris" multiple>
+            </div>
+            <div class="file-list" id="allFileList"></div>
+            
+            <button class="process-btn" id="processBtn" disabled>🚀 开始处理</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在处理文件...</p>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="section-title">✅ 处理结果</div>
+                <div class="stats" id="stats"></div>
+                <div id="resultsList"></div>
+                <button class="download-all-btn" id="downloadAllBtn">⬇️ 下载全部 (ZIP)</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let allFiles = [];
+        let endnoteFiles = [];
+        let pdfFiles = [];
+        
+        function initDropzone() {
+            const zone = document.getElementById('allDropzone');
+            const input = document.getElementById('allInput');
+            
+            zone.addEventListener('click', () => input.click());
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                handleAllFiles(Array.from(e.dataTransfer.files));
+            });
+            input.addEventListener('change', (e) => handleAllFiles(Array.from(e.target.files)));
+        }
+        
+        function handleAllFiles(files) {
+            const supported = files.filter((file) => /\.(pdf|enw|ris)$/i.test(file.name));
+            allFiles = allFiles.concat(supported);
+            renderFiles();
+        }
+        
+        function renderFiles() {
+            const list = document.getElementById('allFileList');
+            list.innerHTML = '';
+            allFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-meta">大小: ${(file.size / 1024).toFixed(2)} KB</div>
+                    </div>
+                    <button class="file-remove" onclick="removeFile(${index})">删除</button>
+                `;
+                list.appendChild(item);
+            });
+            updateProcessBtn();
+        }
+        
+        function removeFile(index) {
+            allFiles.splice(index, 1);
+            renderFiles();
+        }
+        
+        function updateProcessBtn() {
+            const btn = document.getElementById('processBtn');
+            btn.disabled = !(pdfFiles.length > 0 || endnoteFiles.length > 0);
+        }
+        
+        document.addEventListener('DOMContentLoaded', initDropzone);
+        document.getElementById('processBtn').addEventListener('click', () => {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
